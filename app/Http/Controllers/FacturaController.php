@@ -8,58 +8,28 @@ use Illuminate\Http\Request;
 class FacturaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra la factura especificada.
+     *
+     * @param  int|null $id
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function index()
+    public function show($id = null)
     {
-        //
-    }
+        // Obtener todas las facturas para el selector
+        $facturas = Factura::orderBy('fecha_emision', 'desc')->get();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        // Si no se proporciona ID, intentar encontrar la primera o simplemente mostrar la página del selector
+        if (!$id) {
+            if ($facturas->count() > 0) {
+                return redirect()->route('facturas.show', ['id' => $facturas->first()->id]);
+            }
+            // Si no existen facturas en absoluto
+            return view('facturas.show', ['factura' => null, 'facturas' => $facturas]);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // Buscar la factura con relaciones
+        $factura = Factura::with(['cliente', 'detalles.producto'])->findOrFail($id);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Factura $factura)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Factura $factura)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Factura $factura)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Factura $factura)
-    {
-        //
+        return view('facturas.show', compact('factura', 'facturas'));
     }
 }
